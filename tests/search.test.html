@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Search Tests — Wanderlust</title>
+  <style>
+    body { font-family: monospace; background: #faf6f0; color: #2c1a0e; padding: 2rem; }
+    h1   { font-size: 1.3rem; margin-bottom: 1.5rem; }
+    .suite      { margin-bottom: 2rem; }
+    .suite-name { font-size: 1rem; font-weight: bold; margin-bottom: 0.5rem; color: #2d5a3d; }
+    .test  { padding: 0.35rem 0.6rem; margin: 0.2rem 0; border-radius: 4px; font-size: 0.9rem; }
+    .pass  { background: #d1fae5; color: #065f46; }
+    .fail  { background: #fee2e2; color: #991b1b; }
+    .summary { margin-top: 1.5rem; font-size: 1rem; font-weight: bold; padding: 0.75rem 1rem; border-radius: 6px; }
+    .all-pass { background: #d1fae5; color: #065f46; }
+    .has-fail  { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <h1>Search Feature Tests</h1>
+  <div id="output"></div>
+
+  <script type="module">
+    import { searchDestinations, getAllDestinations } from '../js/api.js';
+
+    const results = [];
+
+    function assert(description, actual, expected) {
+      const pass = JSON.stringify(actual) === JSON.stringify(expected);
+      results.push({ description, pass, actual, expected });
+    }
+
+    function assertLength(description, actual, expectedLength) {
+      const pass = actual.length === expectedLength;
+      results.push({ description, pass,
+        actual: `got ${actual.length} result(s)`,
+        expected: `${expectedLength} result(s)` });
+    }
+
+    function assertContains(description, list, name) {
+      const pass = list.some(d => d.name === name);
+      results.push({ description, pass,
+        actual: pass ? `found "${name}"` : `"${name}" not in results`,
+        expected: `results contain "${name}"` });
+    }
+
+    // ── Suite: empty / whitespace queries ───────────────────────────────────
+    const suites = [];
+
+    suites.push({
+      name: 'Empty & whitespace queries return all destinations',
+      tests: () => {
+        const total = getAllDestinations().length;
+        assertLength('empty string returns all',        searchDestinations(''),    total);
+        assertLength('whitespace-only returns all',    searchDestinations('   '), total);
+        assertLength('null returns all',               searchDestinations(null),  total);
+        assertLength('undefined returns all',          searchDestinations(),      total);
+      }
+    });
+
+    // ── Suite: search by name ───────────────────────────────────────────────
+    suites.push({
+      name: 'Search by destination name',
+      tests: () => {
+        const paris = searchDestinations('paris');
+        assertLength('exact name "paris" returns 1 result',         paris, 1);
+        assert      ('result is Paris',                              paris[0]?.name, 'Paris');
+
+        const tok   = searchDestinations('tok');
+        assertLength('partial name "tok" matches Tokyo',            tok, 1);
+        assert      ('partial result is Tokyo',                     tok[0]?.name, 'Tokyo');
+
+        const city  = searchDestinations('city');
+        assertContains('"city" matches New York City', city, 'New York City');
+      }
+    });
+
+    // ── Suite: search by country ────────────────────────────────────────────
+    suites.push({
+      name: 'Search by country',
+      tests: () => {
+        const japan  = searchDestinations('japan');
+        assertLength('"japan" returns both Tokyo and Kyoto',        japan, 2);
+
+        const brazil = searchDestinations('brazil');
+        assertLength('"brazil" returns Rio de Janeiro',             brazil, 1);
+        assert      ('result is Rio',                               brazil[0]?.name, 'Rio de Janeiro');
+      }
+    });
+
+    // ── Suite: search by region ─────────────────────────────────────────────
+    suites.push({
+      name: 'Search by region',
+      tests: () => {
+        const africa = searchDestinations('africa');
+        assertLength('"africa" returns 3 African destinations',     africa, 3);
+
+        const oceania = searchDestinations('oceania');
+        assertLength('"oceania" returns 2 Oceanian destinations',   oceania, 2);
+      }
+    });
+
+    // ── Suite: search by tag ────────────────────────────────────────────────
+    suites.push({
+      name: 'Search by tag',
+      tests: () => {
+        const hiking = searchDestinations('hiking');
+        assertContains('"hiking" tag matches Machu Picchu', hiking, 'Machu Picchu');
+
+        const romantic = searchDestinations('romantic');
+        assertLength('"romantic" tag returns Paris and Santorini',  romantic, 2);
+      }
+    });
+
+    // ── Suite: case insensitivity ───────────────────────────────────────────
+    suites.push({
+      name: 'Case-insensitive search',
+      tests: () => {
+        const upper = searchDestinations('PARIS');
+        assertLength('"PARIS" (uppercase) returns 1 result',        upper, 1);
+        assert      ('uppercase result is Paris',                   upper[0]?.name, 'Paris');
+
+        const mixed = searchDestinations('ToKyO');
+        assertLength('"ToKyO" (mixed case) returns 1 result',       mixed, 1);
+        assert      ('mixed case result is Tokyo',                  mixed[0]?.name, 'Tokyo');
+      }
+    });
+
+    // ── Suite: no results ───────────────────────────────────────────────────
+    suites.push({
+      name: 'No-match queries',
+      tests: () => {
+        assertLength('"zzzzz" returns 0 results',  searchDestinations('zzzzz'), 0);
+        assertLength('"12345" returns 0 results',  searchDestinations('12345'), 0);
+      }
+    });
+
+    // ── Run all suites ───────────────────────────────────────────────────────
+    const suiteResults = suites.map(suite => {
+      const before = results.length;
+      suite.tests();
+      return { name: suite.name, tests: results.slice(before) };
+    });
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    const output  = document.getElementById('output');
+    let totalPass = 0, totalFail = 0;
+
+    suiteResults.forEach(suite => {
+      const div = document.createElement('div');
+      div.className = 'suite';
+      div.innerHTML = `<p class="suite-name">${suite.name}</p>`;
+
+      suite.tests.forEach(t => {
+        const row = document.createElement('div');
+        row.className = `test ${t.pass ? 'pass' : 'fail'}`;
+        row.textContent = `${t.pass ? '✓' : '✗'} ${t.description}${t.pass ? '' : ` — expected: ${t.expected}, got: ${t.actual}`}`;
+        div.appendChild(row);
+        t.pass ? totalPass++ : totalFail++;
+      });
+
+      output.appendChild(div);
+    });
+
+    const summary = document.createElement('div');
+    summary.className = `summary ${totalFail === 0 ? 'all-pass' : 'has-fail'}`;
+    summary.textContent = totalFail === 0
+      ? `All ${totalPass} tests passed.`
+      : `${totalPass} passed, ${totalFail} failed.`;
+    output.appendChild(summary);
+  </script>
+</body>
+</html>
