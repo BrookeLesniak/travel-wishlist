@@ -1,6 +1,8 @@
 // cards.js — destination card creation and grid rendering
 
-export function createDestinationCard(destination, { isSaved = false, onWishlistToggle = null } = {}) {
+import { openModal } from './modal.js';
+
+export function createDestinationCard(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null } = {}) {
   const card = document.createElement('article');
   card.className = 'dest-card';
   card.dataset.id = destination.id;
@@ -36,6 +38,20 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
     wishBtn.innerHTML = saved ? '&#9829;' : '&#9825;';
     wishBtn.setAttribute('aria-label', saved ? 'Remove from wishlist' : 'Save to wishlist');
     if (onWishlistToggle) onWishlistToggle(destination, saved);
+  });
+
+  // Open modal on card click
+  card.addEventListener('click', () => {
+    openModal(destination, {
+      isSaved: wishBtn.classList.contains('saved'),
+      onWishlistToggle: (dest, saved) => {
+        wishBtn.classList.toggle('saved', saved);
+        wishBtn.innerHTML = saved ? '&#9829;' : '&#9825;';
+        wishBtn.setAttribute('aria-label', saved ? 'Remove from wishlist' : 'Save to wishlist');
+        if (onWishlistToggle) onWishlistToggle(dest, saved);
+      },
+      onAddToTrip,
+    });
   });
 
   return card;
