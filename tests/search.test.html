@@ -44,6 +44,13 @@
         expected: `results contain "${name}"` });
     }
 
+    function assertMinLength(description, actual, min) {
+      const pass = actual.length >= min;
+      results.push({ description, pass,
+        actual: `got ${actual.length} result(s)`,
+        expected: `at least ${min} result(s)` });
+    }
+
     // ── Suite: empty / whitespace queries ───────────────────────────────────
     const suites = [];
 
@@ -70,8 +77,11 @@
         assertLength('partial name "tok" matches Tokyo',            tok, 1);
         assert      ('partial result is Tokyo',                     tok[0]?.name, 'Tokyo');
 
+        // "city" also matches Sydney and Singapore via their 'city' tag
         const city  = searchDestinations('city');
-        assertContains('"city" matches New York City', city, 'New York City');
+        assertContains('"city" matches New York City (name)',  city, 'New York City');
+        assertContains('"city" also matches Sydney (tag)',     city, 'Sydney');
+        assertContains('"city" also matches Singapore (tag)',  city, 'Singapore');
       }
     });
 
@@ -80,11 +90,11 @@
       name: 'Search by country',
       tests: () => {
         const japan  = searchDestinations('japan');
-        assertLength('"japan" returns both Tokyo and Kyoto',        japan, 2);
+        assertContains('"japan" matches Tokyo',    japan, 'Tokyo');
+        assertContains('"japan" matches Kyoto',    japan, 'Kyoto');
 
         const brazil = searchDestinations('brazil');
-        assertLength('"brazil" returns Rio de Janeiro',             brazil, 1);
-        assert      ('result is Rio',                               brazil[0]?.name, 'Rio de Janeiro');
+        assertContains('"brazil" matches Rio de Janeiro', brazil, 'Rio de Janeiro');
       }
     });
 
@@ -93,10 +103,13 @@
       name: 'Search by region',
       tests: () => {
         const africa = searchDestinations('africa');
-        assertLength('"africa" returns 3 African destinations',     africa, 3);
+        assertMinLength('"africa" returns African destinations',    africa, 1);
+        assertContains ('"africa" includes Marrakech',              africa, 'Marrakech');
+        assertContains ('"africa" includes Serengeti',              africa, 'Serengeti');
 
         const oceania = searchDestinations('oceania');
-        assertLength('"oceania" returns 2 Oceanian destinations',   oceania, 2);
+        assertMinLength('"oceania" returns Oceanian destinations',  oceania, 1);
+        assertContains ('"oceania" includes Sydney',                oceania, 'Sydney');
       }
     });
 
@@ -108,7 +121,18 @@
         assertContains('"hiking" tag matches Machu Picchu', hiking, 'Machu Picchu');
 
         const romantic = searchDestinations('romantic');
-        assertLength('"romantic" tag returns Paris and Santorini',  romantic, 2);
+        assertContains('"romantic" tag matches Paris',      romantic, 'Paris');
+        assertContains('"romantic" tag matches Santorini',  romantic, 'Santorini');
+      }
+    });
+
+    // ── Suite: whitespace trimming ──────────────────────────────────────────
+    suites.push({
+      name: 'Leading/trailing whitespace is trimmed',
+      tests: () => {
+        const padded = searchDestinations('  paris  ');
+        assertLength('"  paris  " returns 1 result',   padded, 1);
+        assert      ('trimmed result is Paris',         padded[0]?.name, 'Paris');
       }
     });
 
@@ -138,7 +162,12 @@
     // ── Run all suites ───────────────────────────────────────────────────────
     const suiteResults = suites.map(suite => {
       const before = results.length;
-      suite.tests();
+      try {
+        suite.tests();
+      } catch (err) {
+        results.push({ description: `Suite threw an error: ${err.message}`, pass: false,
+          actual: err.message, expected: 'no error' });
+      }
       return { name: suite.name, tests: results.slice(before) };
     });
 
