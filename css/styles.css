@@ -182,13 +182,162 @@ a {
 }
 
 /* ===========================
-   Destination Grid
+   Region Filters
+=========================== */
+.region-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-bottom: 0.25rem;
+}
+
+.region-btn {
+  padding: 0.35rem 1rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.region-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.region-btn.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ===========================
+   Destination Grid & Cards
 =========================== */
 .destination-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1.75rem;
   padding: 2rem;
+}
+
+.dest-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dest-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(44, 26, 14, 0.1);
+}
+
+.card-img-wrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background-color: var(--sand);
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.dest-card:hover .card-img {
+  transform: scale(1.04);
+}
+
+.btn-wishlist {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 50%;
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.btn-wishlist:hover {
+  transform: scale(1.15);
+  color: var(--accent);
+}
+
+.btn-wishlist.saved {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.card-region {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.card-country {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  text-transform: capitalize;
 }
 
 .empty-state {

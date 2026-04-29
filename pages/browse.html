@@ -24,8 +24,9 @@
   <header class="page-header">
     <h1>Browse Destinations</h1>
     <div class="search-bar">
-      <input type="text" id="search-input" placeholder="Search destinations..." aria-label="Search destinations" />
+      <input type="text" id="search-input" placeholder="Search by name, country, or tag..." aria-label="Search destinations" />
     </div>
+    <div id="region-filters" class="region-filters"></div>
   </header>
 
   <main>
@@ -39,5 +40,63 @@
   </footer>
 
   <script src="../js/app.js"></script>
+  <script type="module">
+    import { getAllDestinations, searchDestinations, getByRegion, REGIONS } from '../js/api.js';
+    import { renderDestinations } from '../js/cards.js';
+
+    const grid          = document.getElementById('destination-grid');
+    const searchInput   = document.getElementById('search-input');
+    const regionFilters = document.getElementById('region-filters');
+
+    let activeRegion  = null;
+    let searchTimeout = null;
+
+    // Build region filter buttons
+    const allBtn = document.createElement('button');
+    allBtn.textContent = 'All';
+    allBtn.className = 'region-btn active';
+    allBtn.addEventListener('click', () => selectRegion(null, allBtn));
+    regionFilters.appendChild(allBtn);
+
+    REGIONS.forEach(region => {
+      const btn = document.createElement('button');
+      btn.textContent = region;
+      btn.className = 'region-btn';
+      btn.addEventListener('click', () => selectRegion(region, btn));
+      regionFilters.appendChild(btn);
+    });
+
+    function selectRegion(region, btn) {
+      activeRegion = region;
+      searchInput.value = '';
+      regionFilters.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function render() {
+      const query = searchInput.value.trim();
+      let results;
+      if (query) {
+        results = searchDestinations(query);
+      } else if (activeRegion) {
+        results = getByRegion(activeRegion);
+      } else {
+        results = getAllDestinations();
+      }
+      renderDestinations(results, grid);
+    }
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      // Clear active region when searching
+      activeRegion = null;
+      regionFilters.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+      allBtn.classList.add('active');
+      searchTimeout = setTimeout(render, 300);
+    });
+
+    render();
+  </script>
 </body>
 </html>
