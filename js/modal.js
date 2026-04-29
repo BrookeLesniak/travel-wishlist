@@ -77,7 +77,9 @@ saveNoteBtn.addEventListener('click', () => {
   if (!currentDestination) return;
   const text = notesText.value.trim();
   if (selectedRating === 0 && !text) return;
-  saveNote(currentDestination.id, { rating: selectedRating, text });
+  const note = { rating: selectedRating, text };
+  saveNote(currentDestination.id, note);
+  if (currentCallbacks.onNoteSaved) currentCallbacks.onNoteSaved(note);
   noteSavedMsg.hidden = false;
   clearTimeout(savedMsgTimer);
   savedMsgTimer = setTimeout(() => { noteSavedMsg.hidden = true; }, 2000);
@@ -101,9 +103,9 @@ tripBtn.addEventListener('click', () => {
 
 let lastFocusedElement = null;
 
-export function openModal(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null } = {}) {
+export function openModal(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null, onNoteSaved = null } = {}) {
   currentDestination = destination;
-  currentCallbacks   = { onWishlistToggle, onAddToTrip };
+  currentCallbacks   = { onWishlistToggle, onAddToTrip, onNoteSaved };
 
   lastFocusedElement = document.activeElement;
 

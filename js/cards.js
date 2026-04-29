@@ -20,11 +20,17 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
   ).join('');
 
   const hasNote = note && (note.rating > 0 || note.text);
-  const noteHTML = hasNote ? `
+  const rating  = hasNote ? Math.min(5, Math.max(0, Math.floor(note.rating ?? 0))) : 0;
+
+  function buildNoteHTML(n, r) {
+    return `
     <div class="card-note">
-      ${note.rating > 0 ? `<span class="card-note-stars">${'★'.repeat(note.rating)}${'☆'.repeat(5 - note.rating)}</span>` : ''}
-      ${note.text ? `<p class="card-note-text">${escapeHtml(note.text)}</p>` : ''}
-    </div>` : '';
+      ${r > 0 ? `<span class="card-note-stars">${'★'.repeat(r)}${'☆'.repeat(5 - r)}</span>` : ''}
+      ${n.text ? `<p class="card-note-text">${escapeHtml(n.text)}</p>` : ''}
+    </div>`;
+  }
+
+  const noteHTML = hasNote ? buildNoteHTML(note, rating) : '';
 
   card.innerHTML = `
     <div class="card-img-wrap">
@@ -67,6 +73,19 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
         if (onWishlistToggle) onWishlistToggle(dest, saved);
       },
       onAddToTrip,
+      onNoteSaved: (savedNote) => {
+        const r = Math.min(5, Math.max(0, Math.floor(savedNote.rating ?? 0)));
+        const cardBody = card.querySelector('.card-body');
+        const existing = card.querySelector('.card-note');
+        if (savedNote.rating > 0 || savedNote.text) {
+          const html = buildNoteHTML(savedNote, r);
+          if (existing) {
+            existing.outerHTML = html;
+          } else {
+            cardBody.insertAdjacentHTML('beforeend', html);
+          }
+        }
+      },
     });
   });
 
