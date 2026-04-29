@@ -84,3 +84,69 @@ export function removeNote(id) {
   delete notes[id];
   saveNotes(notes);
 }
+
+// ===========================
+// Trips
+// ===========================
+
+const TRIPS_KEY = 'wanderlust_trips';
+
+function loadTrips() {
+  try {
+    return JSON.parse(localStorage.getItem(TRIPS_KEY)) ?? [];
+  } catch (err) {
+    console.error('Could not parse trips from storage:', err);
+    return [];
+  }
+}
+
+function saveTrips(trips) {
+  try {
+    localStorage.setItem(TRIPS_KEY, JSON.stringify(trips));
+  } catch {
+    console.error('Storage full — could not save trips.');
+  }
+}
+
+export function getTrips() {
+  return loadTrips();
+}
+
+export function createTrip(name) {
+  const trips = loadTrips();
+  const trip  = { id: 'trip_' + Date.now(), name: name.trim(), destinationIds: [] };
+  trips.push(trip);
+  saveTrips(trips);
+  return trip;
+}
+
+export function deleteTrip(id) {
+  saveTrips(loadTrips().filter(t => t.id !== id));
+}
+
+export function addDestinationToTrip(tripId, destId) {
+  const trips = loadTrips();
+  const trip  = trips.find(t => t.id === tripId);
+  if (trip && !trip.destinationIds.includes(destId)) {
+    trip.destinationIds.push(destId);
+    saveTrips(trips);
+  }
+}
+
+export function removeDestinationFromTrip(tripId, destId) {
+  const trips = loadTrips();
+  const trip  = trips.find(t => t.id === tripId);
+  if (trip) {
+    trip.destinationIds = trip.destinationIds.filter(id => id !== destId);
+    saveTrips(trips);
+  }
+}
+
+export function isInTrip(tripId, destId) {
+  const trip = loadTrips().find(t => t.id === tripId);
+  return trip ? trip.destinationIds.includes(destId) : false;
+}
+
+export function getTripsForDestination(destId) {
+  return loadTrips().filter(t => t.destinationIds.includes(destId));
+}

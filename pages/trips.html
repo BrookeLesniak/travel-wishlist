@@ -23,11 +23,18 @@
 
   <header class="page-header">
     <h1>My Trips</h1>
+    <div class="trip-create-form">
+      <div class="trip-create-field">
+        <input id="trip-name-input" type="text" placeholder="Name your trip…" maxlength="60" aria-label="Trip name" aria-describedby="trip-name-error" />
+        <p id="trip-name-error" class="trip-name-error" hidden>Please enter a trip name.</p>
+      </div>
+      <button id="btn-create-trip">+ Create Trip</button>
+    </div>
   </header>
 
   <main>
     <div id="trips-container">
-      <p class="empty-state">No trips yet. Create one to start organizing your destinations.</p>
+      <p class="empty-state">Loading…</p>
     </div>
   </main>
 
@@ -36,5 +43,146 @@
   </footer>
 
   <script src="../js/app.js"></script>
+  <script type="module">
+    import { getTrips, createTrip, deleteTrip, removeDestinationFromTrip, addToWishlist, removeFromWishlist, getWishlistedIds, getNote } from '../js/storage.js';
+    import { getDestinationById, REGIONS } from '../js/api.js';
+    import { renderDestinations } from '../js/cards.js';
+
+    const container  = document.getElementById('trips-container');
+    const nameInput  = document.getElementById('trip-name-input');
+    const createBtn  = document.getElementById('btn-create-trip');
+    const nameError  = document.getElementById('trip-name-error');
+
+    function showNameError() {
+      nameError.hidden = false;
+      nameInput.setAttribute('aria-invalid', 'true');
+      nameInput.focus();
+    }
+
+    function clearNameError() {
+      nameError.hidden = true;
+      nameInput.removeAttribute('aria-invalid');
+    }
+
+    nameInput.addEventListener('input', () => {
+      if (nameInput.value.trim()) clearNameError();
+    });
+
+    function renderByRegion(destinations, el, tripId, savedIds) {
+      el.innerHTML = '';
+
+      // Group by region, preserving REGIONS order
+      const groups = new Map();
+      REGIONS.forEach(r => groups.set(r, []));
+      destinations.forEach(d => {
+        if (groups.has(d.region)) groups.get(d.region).push(d);
+        else groups.set(d.region, [d]);
+      });
+
+      const filledGroups = [...groups.entries()].filter(([, dests]) => dests.length > 0);
+      const multiRegion  = filledGroups.length > 1;
+
+      filledGroups.forEach(([region, dests]) => {
+        const group = document.createElement('div');
+        group.className = 'trip-region-group';
+
+        if (multiRegion) {
+          const label = document.createElement('p');
+          label.className = 'trip-region-label';
+          label.textContent = region;
+          group.appendChild(label);
+        }
+
+        const subGrid = document.createElement('div');
+        subGrid.className = 'destination-grid trip-sub-grid';
+        renderDestinations(dests, subGrid, {
+          isSaved: (id) => savedIds.has(id),
+          note: getNote,
+          onWishlistToggle: (destination, saved) => {
+            if (saved) addToWishlist(destination);
+            else removeFromWishlist(destination.id);
+          },
+          onRemoveFromTrip: (destination) => {
+            removeDestinationFromTrip(tripId, destination.id);
+            render();
+          },
+        });
+        group.appendChild(subGrid);
+        el.appendChild(group);
+      });
+    }
+
+    function render() {
+      const trips = getTrips();
+      container.innerHTML = '';
+
+      if (!trips.length) {
+        container.innerHTML = '<p class="empty-state">No trips yet. Name one above and hit Create Trip to get started.</p>';
+        return;
+      }
+
+      const savedIds = getWishlistedIds();
+
+      trips.forEach(trip => {
+        const section = document.createElement('section');
+        section.className = 'trip-section';
+        section.dataset.id = trip.id;
+
+        const header = document.createElement('div');
+        header.className = 'trip-section-header';
+        header.innerHTML = `
+          <h2 class="trip-section-title">${trip.name}</h2>
+          <button class="btn-delete-trip" data-trip-id="${trip.id}" aria-label="Delete trip">Delete trip</button>
+        `;
+
+        const grid = document.createElement('div');
+        grid.className = 'trip-destinations';
+
+        const destinations = trip.destinationIds
+          .map(id => getDestinationById(id))
+          .filter(Boolean);
+
+        if (!destinations.length) {
+          grid.innerHTML = '<p class="empty-state">No destinations in this trip yet. Browse and add some!</p>';
+        } else {
+          renderByRegion(destinations, grid, trip.id, savedIds);
+        }
+
+        section.appendChild(header);
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+    }
+
+    createBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        showNameError();
+        return;
+      }
+      clearNameError();
+      createTrip(name);
+      nameInput.value = '';
+      render();
+    });
+
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') createBtn.click();
+    });
+
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-delete-trip');
+      if (!btn) return;
+      const tripId = btn.dataset.tripId;
+      const trip = getTrips().find(t => t.id === tripId);
+      if (!trip) return;
+      if (confirm(`Delete "${trip.name}"? This cannot be undone.`)) {
+        deleteTrip(tripId);
+        render();
+      }
+    });
+
+    render();
+  </script>
 </body>
 </html>

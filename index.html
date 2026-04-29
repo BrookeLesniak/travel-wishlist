@@ -23,11 +23,28 @@
 
   <main>
   <section class="hero">
+    <div class="hero-decoration" aria-hidden="true"></div>
     <div class="hero-content">
       <p class="hero-eyebrow">Your travel journal</p>
       <h1>Dream it.<br />Plan it.<br />Go.</h1>
       <p class="hero-sub">Browse destinations around the world, build your wishlist, and organize your next adventure.</p>
       <a href="pages/browse.html" class="btn-primary">Start Exploring</a>
+      <div class="hero-stats" aria-label="Site statistics">
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-dest">24</span>
+          <span class="hero-stat-label">Destinations</span>
+        </div>
+        <span class="hero-stat-divider" aria-hidden="true"></span>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-regions">6</span>
+          <span class="hero-stat-label">Regions</span>
+        </div>
+        <span class="hero-stat-divider" aria-hidden="true"></span>
+        <div class="hero-stat" aria-label="Unlimited adventures">
+          <span class="hero-stat-num" aria-hidden="true">&#8734;</span>
+          <span class="hero-stat-label">Adventures</span>
+        </div>
+      </div>
     </div>
   </section>
   </main>
@@ -37,5 +54,12 @@
   </footer>
 
   <script src="js/app.js"></script>
+  <script type="module">
+    import { getAllDestinations, REGIONS } from './js/api.js';
+    const destEl    = document.getElementById('stat-dest');
+    const regionsEl = document.getElementById('stat-regions');
+    if (destEl)    destEl.textContent    = getAllDestinations().length;
+    if (regionsEl) regionsEl.textContent = REGIONS.length;
+  </script>
 </body>
 </html>

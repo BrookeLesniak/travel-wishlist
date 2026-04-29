@@ -236,7 +236,38 @@ a {
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
+  animation: card-in 0.35s ease both;
 }
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dest-card:nth-child(1)  { animation-delay:   0ms; }
+.dest-card:nth-child(2)  { animation-delay:  30ms; }
+.dest-card:nth-child(3)  { animation-delay:  60ms; }
+.dest-card:nth-child(4)  { animation-delay:  90ms; }
+.dest-card:nth-child(5)  { animation-delay: 120ms; }
+.dest-card:nth-child(6)  { animation-delay: 150ms; }
+.dest-card:nth-child(7)  { animation-delay: 180ms; }
+.dest-card:nth-child(8)  { animation-delay: 210ms; }
+.dest-card:nth-child(9)  { animation-delay: 240ms; }
+.dest-card:nth-child(10) { animation-delay: 270ms; }
+.dest-card:nth-child(11) { animation-delay: 300ms; }
+.dest-card:nth-child(12) { animation-delay: 330ms; }
+.dest-card:nth-child(13) { animation-delay: 360ms; }
+.dest-card:nth-child(14) { animation-delay: 390ms; }
+.dest-card:nth-child(15) { animation-delay: 420ms; }
+.dest-card:nth-child(16) { animation-delay: 450ms; }
+.dest-card:nth-child(17) { animation-delay: 480ms; }
+.dest-card:nth-child(18) { animation-delay: 510ms; }
+.dest-card:nth-child(19) { animation-delay: 540ms; }
+.dest-card:nth-child(20) { animation-delay: 570ms; }
+.dest-card:nth-child(21) { animation-delay: 600ms; }
+.dest-card:nth-child(22) { animation-delay: 630ms; }
+.dest-card:nth-child(23) { animation-delay: 660ms; }
+.dest-card:nth-child(24) { animation-delay: 690ms; }
 
 .dest-card:hover {
   transform: translateY(-4px);
@@ -382,7 +413,7 @@ a {
    Modal
 =========================== */
 .modal-overlay {
-  display: none;
+  display: flex;
   position: fixed;
   inset: 0;
   background: rgba(44, 26, 14, 0.6);
@@ -390,10 +421,17 @@ a {
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, visibility 0s linear 0.22s;
 }
 
 .modal-overlay.open {
-  display: flex;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.22s ease;
 }
 
 .modal {
@@ -405,6 +443,14 @@ a {
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: transform 0.28s ease, opacity 0.28s ease;
+}
+
+.modal-overlay.open .modal {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .modal-close {
@@ -679,5 +725,502 @@ a {
 
   .nav-toggle {
     display: block;
+  }
+}
+
+/* ===========================
+   Trip Create Form (page header)
+=========================== */
+.trip-create-form {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.trip-create-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.trip-name-error {
+  font-size: 0.8rem;
+  color: #c0392b;
+  font-weight: 600;
+  padding-left: 0.25rem;
+}
+
+.trip-create-form input[aria-invalid="true"] {
+  border-color: #c0392b;
+  outline: none;
+}
+
+.trip-create-form input {
+  padding: 0.6rem 1rem;
+  width: 100%;
+  max-width: 320px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: 'Lato', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.trip-create-form input:focus {
+  border-color: var(--accent);
+}
+
+#btn-create-trip {
+  padding: 0.6rem 1.4rem;
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+#btn-create-trip:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* ===========================
+   Trip Sections (trips page)
+=========================== */
+.trip-section {
+  margin: 2rem 0;
+  padding: 0 2rem;
+}
+
+.trip-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 0;
+}
+
+.trip-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.btn-delete-trip {
+  padding: 0.3rem 0.8rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-delete-trip:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.trip-section .destination-grid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ===========================
+   Trip destinations wrapper (block, not grid — groups stack vertically)
+=========================== */
+.trip-destinations {
+  padding: 0.5rem 0;
+}
+
+/* ===========================
+   Trip region grouping
+=========================== */
+.trip-region-group {
+  margin-top: 1rem;
+}
+
+.trip-region-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0 0 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+.trip-sub-grid {
+  padding: 1rem 0 0;
+}
+
+/* ===========================
+   Card remove-from-trip button
+=========================== */
+.btn-remove-trip {
+  margin-top: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-remove-trip:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* ===========================
+   Modal trip picker
+=========================== */
+.trip-picker {
+  display: none;
+  padding: 1rem;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.trip-picker.open {
+  display: flex;
+}
+
+.trip-picker-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.trip-picker-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.trip-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.trip-picker-name {
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.trip-picker-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-trip-toggle {
+  padding: 0.25rem 0.7rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+}
+
+.btn-trip-toggle:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.btn-trip-toggle.in-trip {
+  background-color: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.btn-trip-toggle.in-trip:hover {
+  background-color: #c0392b;
+  border-color: #c0392b;
+}
+
+.trip-picker-new {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.trip-picker-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.7rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.trip-picker-input:focus {
+  border-color: var(--accent);
+}
+
+.trip-picker-input.input-error {
+  border-color: #c0392b;
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.btn-trip-create {
+  padding: 0.4rem 0.9rem;
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.btn-trip-create:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-modal-trip.active {
+  border-color: var(--green);
+  color: var(--green);
+  background-color: rgba(45, 90, 61, 0.06);
+}
+
+/* ===========================
+   Hero decorative background
+=========================== */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-decoration::before,
+.hero-decoration::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(192, 96, 58, 0.08) 0%, transparent 70%);
+}
+
+.hero-decoration::before {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -100px;
+}
+
+.hero-decoration::after {
+  width: 400px;
+  height: 400px;
+  bottom: -150px;
+  left: -80px;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===========================
+   Hero stats bar
+=========================== */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.hero-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hero-stat-divider {
+  width: 1px;
+  height: 2.5rem;
+  background-color: var(--border);
+}
+
+/* ===========================
+   Empty states — enhanced
+=========================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-state::before {
+  font-size: 2.5rem;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+/* Context-specific icons via parent selector */
+#destination-grid .empty-state::before     { content: '🗺️'; }
+#trips-container  .empty-state::before     { content: '✈️'; }
+.trip-section     .empty-state::before     { content: '📍'; }
+
+/* ===========================
+   Reduced motion
+=========================== */
+@media (prefers-reduced-motion: reduce) {
+  .dest-card {
+    animation: none;
+  }
+
+  .modal-overlay,
+  .modal-overlay.open {
+    transition: none;
+  }
+
+  .modal,
+  .modal-overlay.open .modal {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ===========================
+   Responsive — additional mobile fixes
+=========================== */
+@media (max-width: 640px) {
+  .page-header {
+    padding: 1.5rem 1rem 0;
+  }
+
+  .hero-stats {
+    gap: 1rem;
+  }
+
+  .hero-stat-num {
+    font-size: 1.4rem;
+  }
+
+  .trip-create-form {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 1rem;
+  }
+
+  .trip-create-field input,
+  #btn-create-trip {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .trip-section {
+    padding: 0 1rem;
+  }
+
+  .trip-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .trip-picker {
+    padding: 0.75rem;
+  }
+
+  .trip-picker-new {
+    flex-direction: column;
+  }
+
+  .btn-trip-create {
+    width: 100%;
   }
 }

@@ -23,6 +23,7 @@
 
   <header class="page-header">
     <h1>My Wishlist</h1>
+    <div id="region-filters" class="region-filters"></div>
   </header>
 
   <main>
@@ -39,19 +40,62 @@
   <script type="module">
     import { getWishlist, removeFromWishlist, getWishlistedIds, getNote } from '../js/storage.js';
     import { renderDestinations } from '../js/cards.js';
+    import { REGIONS } from '../js/api.js';
 
-    const grid = document.getElementById('destination-grid');
+    const grid          = document.getElementById('destination-grid');
+    const regionFilters = document.getElementById('region-filters');
+
+    let activeRegion = null;
+
+    function buildRegionFilters(wishlist) {
+      const presentRegions = REGIONS.filter(r => wishlist.some(d => d.region === r));
+      regionFilters.innerHTML = '';
+
+      if (presentRegions.length < 2) return;
+
+      const allBtn = document.createElement('button');
+      allBtn.textContent = 'All';
+      allBtn.className = `region-btn ${activeRegion === null ? 'active' : ''}`;
+      allBtn.addEventListener('click', () => { activeRegion = null; render(); });
+      regionFilters.appendChild(allBtn);
+
+      presentRegions.forEach(region => {
+        const btn = document.createElement('button');
+        btn.textContent = region;
+        btn.className = `region-btn ${activeRegion === region ? 'active' : ''}`;
+        btn.addEventListener('click', () => { activeRegion = region; render(); });
+        regionFilters.appendChild(btn);
+      });
+    }
 
     function render() {
       const wishlist = getWishlist();
 
       if (!wishlist.length) {
+        regionFilters.innerHTML = '';
+        activeRegion = null;
         grid.innerHTML = '<p class="empty-state">Your wishlist is empty. <a href="browse.html">Start browsing</a> to add destinations.</p>';
         return;
       }
 
+      // If the active region no longer has any items (e.g. last one was removed), reset
+      if (activeRegion && !wishlist.some(d => d.region === activeRegion)) {
+        activeRegion = null;
+      }
+
+      buildRegionFilters(wishlist);
+
+      const filtered = activeRegion
+        ? wishlist.filter(d => d.region === activeRegion)
+        : wishlist;
+
+      if (!filtered.length) {
+        grid.innerHTML = '<p class="empty-state">No destinations from this region in your wishlist.</p>';
+        return;
+      }
+
       const savedIds = getWishlistedIds();
-      renderDestinations(wishlist, grid, {
+      renderDestinations(filtered, grid, {
         isSaved: (id) => savedIds.has(id),
         note: getNote,
         onWishlistToggle: (destination, saved) => {

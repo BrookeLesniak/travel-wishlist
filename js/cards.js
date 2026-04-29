@@ -10,7 +10,7 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-export function createDestinationCard(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null, note = null } = {}) {
+export function createDestinationCard(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null, onRemoveFromTrip = null, note = null } = {}) {
   const card = document.createElement('article');
   card.className = 'dest-card';
   card.dataset.id = destination.id;
@@ -31,6 +31,9 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
   }
 
   const noteHTML = hasNote ? buildNoteHTML(note, rating) : '';
+  const removeBtn = onRemoveFromTrip
+    ? `<button class="btn-remove-trip" aria-label="Remove from trip">&times; Remove</button>`
+    : '';
 
   card.innerHTML = `
     <div class="card-img-wrap">
@@ -45,6 +48,7 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
       <p class="card-country">${destination.country}</p>
       <div class="card-tags">${tagHTML}</div>
       ${noteHTML}
+      ${removeBtn}
     </div>
   `;
 
@@ -61,6 +65,16 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
     wishBtn.setAttribute('aria-label', saved ? 'Remove from wishlist' : 'Save to wishlist');
     if (onWishlistToggle) onWishlistToggle(destination, saved);
   });
+
+  // Remove from trip button
+  const removeFromTripBtn = card.querySelector('.btn-remove-trip');
+  if (removeFromTripBtn) {
+    removeFromTripBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`Remove ${destination.name} from this trip?`)) return;
+      if (onRemoveFromTrip) onRemoveFromTrip(destination);
+    });
+  }
 
   // Open modal on card click
   card.addEventListener('click', () => {

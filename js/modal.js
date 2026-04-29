@@ -1,6 +1,14 @@
 // modal.js — destination detail modal
 
-import { getNote, saveNote } from './storage.js';
+import { getNote, saveNote, getTrips, createTrip, addDestinationToTrip, removeDestinationFromTrip } from './storage.js';
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 const overlay = document.createElement('div');
 overlay.className = 'modal-overlay';
@@ -19,6 +27,14 @@ overlay.innerHTML = `
       <div class="modal-actions">
         <button class="btn-modal-wishlist">&#9825; Save to Wishlist</button>
         <button class="btn-modal-trip">+ Add to Trip</button>
+      </div>
+      <div class="trip-picker">
+        <p class="trip-picker-label">Your trips</p>
+        <ul class="trip-picker-list"></ul>
+        <div class="trip-picker-new">
+          <input class="trip-picker-input" type="text" placeholder="New trip name…" maxlength="60" />
+          <button class="btn-trip-create">Create &amp; Add</button>
+        </div>
       </div>
       <div class="modal-notes">
         <p class="notes-label">Your Notes</p>
@@ -40,19 +56,23 @@ overlay.innerHTML = `
 `;
 document.body.appendChild(overlay);
 
-const closeBtn     = overlay.querySelector('.modal-close');
-const imgEl        = overlay.querySelector('.modal-img');
-const regionEl     = overlay.querySelector('.modal-region');
-const titleEl      = overlay.querySelector('.modal-title');
-const countryEl    = overlay.querySelector('.modal-country');
-const descEl       = overlay.querySelector('.modal-description');
-const tagsEl       = overlay.querySelector('.modal-tags');
-const wishlistBtn  = overlay.querySelector('.btn-modal-wishlist');
-const tripBtn      = overlay.querySelector('.btn-modal-trip');
-const stars        = overlay.querySelectorAll('.star');
-const notesText    = overlay.querySelector('.notes-text');
-const saveNoteBtn  = overlay.querySelector('.btn-save-note');
-const noteSavedMsg = overlay.querySelector('.note-saved-msg');
+const closeBtn       = overlay.querySelector('.modal-close');
+const imgEl          = overlay.querySelector('.modal-img');
+const regionEl       = overlay.querySelector('.modal-region');
+const titleEl        = overlay.querySelector('.modal-title');
+const countryEl      = overlay.querySelector('.modal-country');
+const descEl         = overlay.querySelector('.modal-description');
+const tagsEl         = overlay.querySelector('.modal-tags');
+const wishlistBtn    = overlay.querySelector('.btn-modal-wishlist');
+const tripBtn        = overlay.querySelector('.btn-modal-trip');
+const tripPicker     = overlay.querySelector('.trip-picker');
+const tripList       = overlay.querySelector('.trip-picker-list');
+const tripInput      = overlay.querySelector('.trip-picker-input');
+const btnTripCreate  = overlay.querySelector('.btn-trip-create');
+const stars          = overlay.querySelectorAll('.star');
+const notesText      = overlay.querySelector('.notes-text');
+const saveNoteBtn    = overlay.querySelector('.btn-save-note');
+const noteSavedMsg   = overlay.querySelector('.note-saved-msg');
 
 let currentDestination = null;
 let currentCallbacks   = {};
@@ -95,11 +115,79 @@ wishlistBtn.addEventListener('click', () => {
   }
 });
 
-tripBtn.addEventListener('click', () => {
-  if (currentCallbacks.onAddToTrip) {
-    currentCallbacks.onAddToTrip(currentDestination);
+// ===========================
+// Trip picker
+// ===========================
+
+function renderTripList() {
+  if (!currentDestination) return;
+  const trips = getTrips();
+  const destId = currentDestination.id;
+
+  if (!trips.length) {
+    tripList.innerHTML = '<li class="trip-picker-empty">No trips yet — create one below.</li>';
+    return;
   }
+
+  tripList.innerHTML = '';
+  trips.forEach(trip => {
+    const inTrip = trip.destinationIds.includes(destId);
+    const li = document.createElement('li');
+    li.className = 'trip-picker-item';
+    li.innerHTML = `
+      <span class="trip-picker-name">${escapeHtml(trip.name)}</span>
+      <button class="btn-trip-toggle ${inTrip ? 'in-trip' : ''}" data-trip-id="${trip.id}" aria-pressed="${inTrip}">
+        ${inTrip ? '&#10003; Added' : '+ Add'}
+      </button>
+    `;
+    tripList.appendChild(li);
+  });
+}
+
+tripBtn.addEventListener('click', () => {
+  const isOpen = tripPicker.classList.contains('open');
+  tripPicker.classList.toggle('open', !isOpen);
+  tripBtn.classList.toggle('active', !isOpen);
+  if (!isOpen) renderTripList();
 });
+
+tripList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-trip-toggle');
+  if (!btn || !currentDestination) return;
+  const tripId = btn.dataset.tripId;
+  const inTrip = btn.classList.contains('in-trip');
+  if (inTrip) {
+    removeDestinationFromTrip(tripId, currentDestination.id);
+  } else {
+    addDestinationToTrip(tripId, currentDestination.id);
+  }
+  renderTripList();
+});
+
+btnTripCreate.addEventListener('click', () => {
+  const name = tripInput.value.trim();
+  if (!currentDestination) return;
+  if (!name) {
+    tripInput.classList.add('input-error');
+    tripInput.placeholder = 'Enter a name first…';
+    tripInput.focus();
+    setTimeout(() => {
+      tripInput.classList.remove('input-error');
+      tripInput.placeholder = 'New trip name…';
+    }, 1500);
+    return;
+  }
+  const trip = createTrip(name);
+  addDestinationToTrip(trip.id, currentDestination.id);
+  tripInput.value = '';
+  renderTripList();
+});
+
+tripInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') btnTripCreate.click();
+});
+
+// ===========================
 
 let lastFocusedElement = null;
 
@@ -124,6 +212,11 @@ export function openModal(destination, { isSaved = false, onWishlistToggle = nul
   wishlistBtn.classList.toggle('saved', isSaved);
   wishlistBtn.innerHTML = isSaved ? '&#9829; Saved' : '&#9825; Save to Wishlist';
 
+  tripPicker.classList.remove('open');
+  tripBtn.classList.remove('active');
+  tripInput.value   = '';
+  tripList.innerHTML = '';
+
   const existing    = getNote(destination.id);
   selectedRating    = existing?.rating ?? 0;
   notesText.value   = existing?.text   ?? '';
@@ -142,6 +235,8 @@ export function closeModal() {
   currentDestination = null;
   currentCallbacks   = {};
   selectedRating     = 0;
+  tripPicker.classList.remove('open');
+  tripBtn.classList.remove('active');
   clearTimeout(savedMsgTimer);
   if (lastFocusedElement) lastFocusedElement.focus();
 }
