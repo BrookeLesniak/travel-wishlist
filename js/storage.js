@@ -1,6 +1,7 @@
-// storage.js — localStorage wishlist
+// storage.js — localStorage wishlist and notes
 
-const KEY = 'wanderlust_wishlist';
+const KEY       = 'wanderlust_wishlist';
+const NOTES_KEY = 'wanderlust_notes';
 
 function load() {
   try {
@@ -45,4 +46,41 @@ export function getWishlistedIds() {
 
 export function clearWishlist() {
   localStorage.removeItem(KEY);
+}
+
+// ===========================
+// Notes & Ratings
+// ===========================
+
+function loadNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTES_KEY)) ?? {};
+  } catch (err) {
+    console.error('Could not parse notes from storage:', err);
+    return {};
+  }
+}
+
+function saveNotes(notes) {
+  try {
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  } catch {
+    console.error('Storage full — could not save notes.');
+  }
+}
+
+export function getNote(id) {
+  return loadNotes()[id] ?? null;
+}
+
+export function saveNote(id, { rating, text }) {
+  const notes = loadNotes();
+  notes[id] = { rating, text };
+  saveNotes(notes);
+}
+
+export function removeNote(id) {
+  const notes = loadNotes();
+  delete notes[id];
+  saveNotes(notes);
 }

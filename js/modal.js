@@ -1,5 +1,7 @@
 // modal.js — destination detail modal
 
+import { getNote, saveNote } from './storage.js';
+
 const overlay = document.createElement('div');
 overlay.className = 'modal-overlay';
 overlay.innerHTML = `
@@ -18,6 +20,21 @@ overlay.innerHTML = `
         <button class="btn-modal-wishlist">&#9825; Save to Wishlist</button>
         <button class="btn-modal-trip">+ Add to Trip</button>
       </div>
+      <div class="modal-notes">
+        <p class="notes-label">Your Notes</p>
+        <div class="star-rating" aria-label="Rating">
+          <button class="star" data-value="1" aria-label="1 star">&#9733;</button>
+          <button class="star" data-value="2" aria-label="2 stars">&#9733;</button>
+          <button class="star" data-value="3" aria-label="3 stars">&#9733;</button>
+          <button class="star" data-value="4" aria-label="4 stars">&#9733;</button>
+          <button class="star" data-value="5" aria-label="5 stars">&#9733;</button>
+        </div>
+        <textarea class="notes-text" placeholder="Write your thoughts about this destination..." rows="3"></textarea>
+        <div class="notes-footer">
+          <button class="btn-save-note">Save Note</button>
+          <p class="note-saved-msg" hidden>&#10003; Saved!</p>
+        </div>
+      </div>
     </div>
   </div>
 `;
@@ -32,9 +49,34 @@ const descEl       = overlay.querySelector('.modal-description');
 const tagsEl       = overlay.querySelector('.modal-tags');
 const wishlistBtn  = overlay.querySelector('.btn-modal-wishlist');
 const tripBtn      = overlay.querySelector('.btn-modal-trip');
+const stars        = overlay.querySelectorAll('.star');
+const notesText    = overlay.querySelector('.notes-text');
+const saveNoteBtn  = overlay.querySelector('.btn-save-note');
+const noteSavedMsg = overlay.querySelector('.note-saved-msg');
 
 let currentDestination = null;
 let currentCallbacks   = {};
+let selectedRating     = 0;
+
+function setStars(value) {
+  stars.forEach(s => s.classList.toggle('active', Number(s.dataset.value) <= value));
+}
+
+stars.forEach(star => {
+  star.addEventListener('click', () => {
+    selectedRating = Number(star.dataset.value);
+    setStars(selectedRating);
+  });
+  star.addEventListener('mouseenter', () => setStars(Number(star.dataset.value)));
+  star.addEventListener('mouseleave', () => setStars(selectedRating));
+});
+
+saveNoteBtn.addEventListener('click', () => {
+  if (!currentDestination) return;
+  saveNote(currentDestination.id, { rating: selectedRating, text: notesText.value.trim() });
+  noteSavedMsg.hidden = false;
+  setTimeout(() => { noteSavedMsg.hidden = true; }, 2000);
+});
 
 imgEl.addEventListener('error', () => { imgEl.style.display = 'none'; });
 
@@ -74,6 +116,12 @@ export function openModal(destination, { isSaved = false, onWishlistToggle = nul
 
   wishlistBtn.classList.toggle('saved', isSaved);
   wishlistBtn.innerHTML = isSaved ? '&#9829; Saved' : '&#9825; Save to Wishlist';
+
+  const existing    = getNote(destination.id);
+  selectedRating    = existing?.rating ?? 0;
+  notesText.value   = existing?.text   ?? '';
+  noteSavedMsg.hidden = true;
+  setStars(selectedRating);
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
