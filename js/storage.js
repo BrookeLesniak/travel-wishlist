@@ -5,7 +5,8 @@ const KEY = 'wanderlust_wishlist';
 function load() {
   try {
     return JSON.parse(localStorage.getItem(KEY)) ?? [];
-  } catch {
+  } catch (err) {
+    console.error('Could not parse wishlist from storage:', err);
     return [];
   }
 }
@@ -36,6 +37,10 @@ export function removeFromWishlist(id) {
 
 export function isWishlisted(id) {
   return load().some(d => d.id === id);
+}
+
+export function getWishlistedIds() {
+  return new Set(load().map(d => d.id));
 }
 
 export function clearWishlist() {

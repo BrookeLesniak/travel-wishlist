@@ -43,7 +43,7 @@
   <script type="module">
     import { getAllDestinations, searchDestinations, getByRegion, REGIONS } from '../js/api.js';
     import { renderDestinations } from '../js/cards.js';
-    import { addToWishlist, removeFromWishlist, isWishlisted } from '../js/storage.js';
+    import { addToWishlist, removeFromWishlist, getWishlistedIds } from '../js/storage.js';
 
     const grid          = document.getElementById('destination-grid');
     const searchInput   = document.getElementById('search-input');
@@ -93,8 +93,9 @@
       } else {
         results = getAllDestinations();
       }
+      const savedIds = getWishlistedIds();
       renderDestinations(results, grid, {
-        isSaved: isWishlisted,
+        isSaved: (id) => savedIds.has(id),
         onWishlistToggle,
       });
     }

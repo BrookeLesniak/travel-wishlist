@@ -27,7 +27,7 @@
 
   <main>
     <div id="destination-grid" class="destination-grid">
-      <p class="empty-state">Your wishlist is empty. <a href="browse.html">Start browsing</a> to add destinations.</p>
+      <p class="empty-state">Loading...</p>
     </div>
   </main>
 
@@ -37,7 +37,7 @@
 
   <script src="../js/app.js"></script>
   <script type="module">
-    import { getWishlist, removeFromWishlist, isWishlisted } from '../js/storage.js';
+    import { getWishlist, removeFromWishlist, getWishlistedIds } from '../js/storage.js';
     import { renderDestinations } from '../js/cards.js';
 
     const grid = document.getElementById('destination-grid');
@@ -50,8 +50,9 @@
         return;
       }
 
+      const savedIds = getWishlistedIds();
       renderDestinations(wishlist, grid, {
-        isSaved: isWishlisted,
+        isSaved: (id) => savedIds.has(id),
         onWishlistToggle: (destination, saved) => {
           if (!saved) {
             removeFromWishlist(destination.id);
