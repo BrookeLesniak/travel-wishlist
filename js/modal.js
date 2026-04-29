@@ -52,9 +52,13 @@ tripBtn.addEventListener('click', () => {
   }
 });
 
+let lastFocusedElement = null;
+
 export function openModal(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null } = {}) {
   currentDestination = destination;
   currentCallbacks   = { onWishlistToggle, onAddToTrip };
+
+  lastFocusedElement = document.activeElement;
 
   imgEl.src            = destination.image;
   imgEl.alt            = destination.name;
@@ -73,14 +77,16 @@ export function openModal(destination, { isSaved = false, onWishlistToggle = nul
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+  closeBtn.focus();
 }
 
 export function closeModal() {
   overlay.classList.remove('open');
   document.body.style.overflow = '';
-  imgEl.src = '';
+  imgEl.removeAttribute('src');
   currentDestination = null;
   currentCallbacks   = {};
+  if (lastFocusedElement) lastFocusedElement.focus();
 }
 
 closeBtn.addEventListener('click', closeModal);

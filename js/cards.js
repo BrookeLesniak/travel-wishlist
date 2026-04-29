@@ -65,7 +65,9 @@ export function renderDestinations(destinations, container, options = {}) {
     return;
   }
 
+  const { isSaved: isSavedFn, ...rest } = options;
   destinations.forEach(d => {
-    container.appendChild(createDestinationCard(d, options));
+    const isSaved = typeof isSavedFn === 'function' ? isSavedFn(d.id) : false;
+    container.appendChild(createDestinationCard(d, { ...rest, isSaved }));
   });
 }
