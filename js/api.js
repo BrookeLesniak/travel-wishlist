@@ -5,7 +5,7 @@ import destinations from './destinations.js';
 export const REGIONS = ['Europe', 'Asia', 'Americas', 'Africa', 'Oceania', 'Middle East'];
 
 export function getAllDestinations() {
-  return destinations;
+  return [...destinations];
 }
 
 export function getDestinationById(id) {
@@ -13,12 +13,13 @@ export function getDestinationById(id) {
 }
 
 export function getByRegion(region) {
-  return destinations.filter(d => d.region === region);
+  const r = region.toLowerCase();
+  return destinations.filter(d => d.region.toLowerCase() === r);
 }
 
 export function searchDestinations(query) {
-  const q = query.toLowerCase().trim();
-  if (!q) return destinations;
+  const q = (query ?? '').toLowerCase().trim();
+  if (!q) return [...destinations];
   return destinations.filter(d =>
     d.name.toLowerCase().includes(q) ||
     d.country.toLowerCase().includes(q) ||

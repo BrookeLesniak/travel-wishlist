@@ -97,7 +97,7 @@ const destinations = [
   {
     id: 'singapore',
     name: 'Singapore',
-    country: 'Singapore',
+    country: 'City-State',
     region: 'Asia',
     description: 'A futuristic garden city where gleaming supertrees, hawker centres, and multicultural neighborhoods coexist.',
     image: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&q=80',
