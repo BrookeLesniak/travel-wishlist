@@ -37,7 +37,7 @@
 
   <script src="../js/app.js"></script>
   <script type="module">
-    import { getWishlist, removeFromWishlist, getWishlistedIds } from '../js/storage.js';
+    import { getWishlist, removeFromWishlist, getWishlistedIds, getNote } from '../js/storage.js';
     import { renderDestinations } from '../js/cards.js';
 
     const grid = document.getElementById('destination-grid');
@@ -53,6 +53,7 @@
       const savedIds = getWishlistedIds();
       renderDestinations(wishlist, grid, {
         isSaved: (id) => savedIds.has(id),
+        note: getNote,
         onWishlistToggle: (destination, saved) => {
           if (!saved) {
             removeFromWishlist(destination.id);

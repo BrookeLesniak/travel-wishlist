@@ -2,7 +2,15 @@
 
 import { openModal } from './modal.js';
 
-export function createDestinationCard(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null } = {}) {
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+export function createDestinationCard(destination, { isSaved = false, onWishlistToggle = null, onAddToTrip = null, note = null } = {}) {
   const card = document.createElement('article');
   card.className = 'dest-card';
   card.dataset.id = destination.id;
@@ -10,6 +18,13 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
   const tagHTML = destination.tags.slice(0, 3).map(t =>
     `<span class="tag">${t}</span>`
   ).join('');
+
+  const hasNote = note && (note.rating > 0 || note.text);
+  const noteHTML = hasNote ? `
+    <div class="card-note">
+      ${note.rating > 0 ? `<span class="card-note-stars">${'★'.repeat(note.rating)}${'☆'.repeat(5 - note.rating)}</span>` : ''}
+      ${note.text ? `<p class="card-note-text">${escapeHtml(note.text)}</p>` : ''}
+    </div>` : '';
 
   card.innerHTML = `
     <div class="card-img-wrap">
@@ -23,6 +38,7 @@ export function createDestinationCard(destination, { isSaved = false, onWishlist
       <h3 class="card-name">${destination.name}</h3>
       <p class="card-country">${destination.country}</p>
       <div class="card-tags">${tagHTML}</div>
+      ${noteHTML}
     </div>
   `;
 
@@ -65,9 +81,10 @@ export function renderDestinations(destinations, container, options = {}) {
     return;
   }
 
-  const { isSaved: isSavedFn, ...rest } = options;
+  const { isSaved: isSavedFn, note: noteFn, ...rest } = options;
   destinations.forEach(d => {
     const isSaved = typeof isSavedFn === 'function' ? isSavedFn(d.id) : false;
-    container.appendChild(createDestinationCard(d, { ...rest, isSaved }));
+    const note    = typeof noteFn   === 'function' ? noteFn(d.id)    : null;
+    container.appendChild(createDestinationCard(d, { ...rest, isSaved, note }));
   });
 }

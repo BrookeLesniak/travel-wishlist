@@ -340,6 +340,31 @@ a {
   text-transform: capitalize;
 }
 
+.card-note {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.card-note-stars {
+  font-size: 0.85rem;
+  color: #d97706;
+  letter-spacing: 1px;
+}
+
+.card-note-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .empty-state {
   color: var(--text-muted);
   text-align: center;
