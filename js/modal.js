@@ -71,11 +71,16 @@ stars.forEach(star => {
   star.addEventListener('mouseleave', () => setStars(selectedRating));
 });
 
+let savedMsgTimer = null;
+
 saveNoteBtn.addEventListener('click', () => {
   if (!currentDestination) return;
-  saveNote(currentDestination.id, { rating: selectedRating, text: notesText.value.trim() });
+  const text = notesText.value.trim();
+  if (selectedRating === 0 && !text) return;
+  saveNote(currentDestination.id, { rating: selectedRating, text });
   noteSavedMsg.hidden = false;
-  setTimeout(() => { noteSavedMsg.hidden = true; }, 2000);
+  clearTimeout(savedMsgTimer);
+  savedMsgTimer = setTimeout(() => { noteSavedMsg.hidden = true; }, 2000);
 });
 
 imgEl.addEventListener('error', () => { imgEl.style.display = 'none'; });
@@ -134,6 +139,8 @@ export function closeModal() {
   imgEl.removeAttribute('src');
   currentDestination = null;
   currentCallbacks   = {};
+  selectedRating     = 0;
+  clearTimeout(savedMsgTimer);
   if (lastFocusedElement) lastFocusedElement.focus();
 }
 
